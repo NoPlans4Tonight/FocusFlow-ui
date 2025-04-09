@@ -90,7 +90,6 @@ export default {
           },
         });
 
-        // Refresh the entries after deletion
         await this.fetchData();
       } catch (error) {
         console.error('Error deleting log:', error);
