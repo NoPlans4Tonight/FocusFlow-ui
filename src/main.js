@@ -5,7 +5,7 @@ import axios from 'axios';
 import { createPinia } from 'pinia';
 import { useUserStore } from './store/userStore';
 
-import './style.css';
+// import './style.css';
 
 axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'; // Use environment variable for base URL
 axios.defaults.headers.common['Content-Type'] = 'application/json';
