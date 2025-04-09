@@ -2,20 +2,23 @@
   <div>
     <Navbar />
     <h1>Dashboard</h1>
-    <div v-if="currentStatus">
-      <p>Currently helping {{ currentStatus.activity }} for {{ currentStatus.duration }} minutes</p>
+    <div v-if="currentStatus" class="current-status">
+      <p>Currently helping <strong>{{ currentStatus.activity }}</strong> for <strong>{{ currentStatus.duration }}</strong> minutes</p>
+      <div class="progress-bar">
+        <div class="progress" :style="{ width: `${currentStatus.progress}%` }"></div>
+      </div>
     </div>
-    <form @submit.prevent="logNote">
+    <form @submit.prevent="logNote" class="log-form">
       <input v-model="currentActivity" type="text" placeholder="Enter activity" required />
       <textarea v-model="newNote" placeholder="Log a new note" required></textarea>
       <button type="submit">Add Log</button>
     </form>
-    <ul>
-      <li v-for="note in notes" :key="note.id">
-        {{ note.content }}
+    <div class="log-list">
+      <div v-for="note in notes" :key="note.id" class="log-card">
+        <p>{{ note.content }}</p>
         <button @click="deleteLog(note.id)">Delete</button>
-      </li>
-    </ul>
+      </div>
+    </div>
     <Timeline :entries="entries" @logDeleted="handleLogDeleted" />
   </div>
 </template>
@@ -56,6 +59,18 @@ export default {
           endTime: log.end_time ? new Date(log.end_time) : null,
         })).sort((a, b) => b.startTime - a.startTime);
 
+        // Update current status
+        const activeLog = logs.find(log => !log.end_time);
+        if (activeLog) {
+          const duration = Math.floor((Date.now() - new Date(activeLog.start_time)) / 60000);
+          this.currentStatus = {
+            activity: activeLog.activity,
+            duration,
+            progress: Math.min((duration / 60) * 100, 100), // Example progress calculation
+          };
+        } else {
+          this.currentStatus = null;
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -106,20 +121,53 @@ export default {
 </script>
 
 <style scoped>
-form {
+h1 {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.current-status {
+  background-color: #f0f8ff;
+  padding: 1rem;
+  border-radius: 8px;
   margin-bottom: 1.5rem;
 }
 
-textarea {
-  display: block;
+.progress-bar {
+  background-color: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  height: 10px;
+  margin-top: 0.5rem;
+}
+
+.progress {
+  background-color: #007bff;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.log-form {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.log-form input,
+.log-form textarea {
+  width: 100%;
   margin-bottom: 0.5rem;
   padding: 0.5rem;
-  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   box-sizing: border-box;
 }
 
-button {
-  padding: 0.5rem 1rem;
+.log-form button {
+  width: 100%;
+  padding: 0.5rem;
   background-color: #007bff;
   color: white;
   border: none;
@@ -127,20 +175,36 @@ button {
   cursor: pointer;
 }
 
-button:hover {
+.log-form button:hover {
   background-color: #0056b3;
 }
 
-ul {
-  list-style-type: none;
-  padding: 0;
+.log-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
 }
 
-li {
-  background: #f8f9fa;
-  margin: 0.5rem 0;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
+.log-card {
+  background-color: #ffffff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.log-card button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
   border-radius: 4px;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.log-card button:hover {
+  background-color: #c82333;
 }
 </style>
