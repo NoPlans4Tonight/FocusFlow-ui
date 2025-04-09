@@ -39,7 +39,7 @@ export default {
       notes: [],
       currentActivity: '',
       userStore: useUserStore(),
-      durationInterval: null, // Add this to store the interval ID
+      durationInterval: null,
     };
   },
   methods: {
@@ -51,7 +51,6 @@ export default {
 
         const logs = response.data;
 
-        // Process logs to extract required details
         this.entries = logs.map(log => ({
           id: log.id,
           activity: log.activity,
@@ -60,17 +59,15 @@ export default {
           endTime: log.end_time ? new Date(log.end_time) : null,
         })).sort((a, b) => b.startTime - a.startTime);
 
-        // Update current status
         const activeLog = logs.find(log => !log.end_time);
         if (activeLog) {
           const duration = Math.floor((Date.now() - new Date(activeLog.start_time)) / 60000);
           this.currentStatus = {
             activity: activeLog.activity,
             duration,
-            progress: Math.min((duration / 60) * 100, 100), // Example progress calculation
+            progress: Math.min((duration / 60) * 100, 100),
           };
 
-          // Start live duration update
           if (!this.durationInterval) {
             this.startDurationUpdate(new Date(activeLog.start_time));
           }
@@ -90,7 +87,7 @@ export default {
           this.currentStatus.duration = duration;
           this.currentStatus.progress = Math.min((duration / 60) * 100, 100);
         }
-      }, 1000); // Update every second
+      }, 1000);
     },
     clearDurationUpdate() {
       if (this.durationInterval) {
@@ -141,7 +138,7 @@ export default {
     this.fetchData();
   },
   beforeDestroy() {
-    this.clearDurationUpdate(); // Clear interval when component is destroyed
+    this.clearDurationUpdate();
   },
 };
 </script>
