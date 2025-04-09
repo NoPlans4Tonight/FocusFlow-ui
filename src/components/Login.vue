@@ -7,12 +7,7 @@
     <div class="login-card">
       <h2>Welcome Back</h2>
       <p>Please log in to continue</p>
-      <form @submit.prevent="login">
-        <input v-model="username" placeholder="Username" type="text" required />
-        <input v-model="password" type="password" placeholder="Password" required />
-        <button type="submit">Login</button>
-      </form>
-      <p v-if="errorMessage" style="color: red;">{{ errorMessage }}</p>
+      <LoginForm @login="handleLogin" />
       <p>Don't have an account? <router-link to="/register">Register here</router-link>.</p>
     </div>
   </div>
@@ -22,24 +17,20 @@
 import { useUserStore } from '../store/userStore';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import LoginForm from './LoginForm.vue';
 
 export default {
+  components: {
+    LoginForm,
+  },
   setup() {
     const userStore = useUserStore();
-    const username = ref('');
-    const password = ref('');
     const errorMessage = ref('');
     const router = useRouter();
 
-    const login = async () => {
+    const handleLogin = async ({ username, password }) => {
       try {
-        // Use the user store to handle login
-        await userStore.login({ username: username.value, password: password.value });
-
-        // Use the userStore to manage authentication state
-        console.log('Access token stored in userStore:', userStore.user.token);
-
-        // Redirect to the Dashboard after successful login
+        await userStore.login({ username, password });
         router.push({ name: 'Dashboard' });
       } catch (error) {
         errorMessage.value = 'Login failed. Please check your credentials.';
@@ -48,9 +39,7 @@ export default {
     };
 
     return {
-      username,
-      password,
-      login,
+      handleLogin,
       errorMessage,
     };
   },
@@ -58,7 +47,6 @@ export default {
 </script>
 
 <style scoped>
-/* Updated styles for a responsive login landing page */
 .login-container {
   display: flex;
   flex-direction: column;
@@ -98,42 +86,13 @@ export default {
   max-width: 400px;
 }
 
-form {
-  margin-top: 1rem;
-}
-
-input {
-  display: block;
-  margin-bottom: 1rem;
-  padding: 0.75rem;
-  width: 100%;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-button {
-  padding: 0.75rem 1.5rem;
-  background-color: #6a11cb;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  width: 100%;
-}
-
-button:hover {
-  background-color: #2575fc;
-}
-
 p {
   margin-top: 1rem;
 }
 
 @media (min-width: 1025px) {
   .login-container {
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 2rem;
