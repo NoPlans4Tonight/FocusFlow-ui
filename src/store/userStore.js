@@ -45,7 +45,6 @@ export const useUserStore = defineStore('user', {
     async logout() {
       try {
         await axios.post('/logout/');
-        console.log('Logout successful');
       } catch (error) {
         console.error('Logout failed:', error);
       } finally {
