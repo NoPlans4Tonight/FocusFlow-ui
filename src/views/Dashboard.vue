@@ -39,6 +39,7 @@ export default {
       notes: [],
       currentActivity: '',
       userStore: useUserStore(),
+      durationInterval: null, // Add this to store the interval ID
     };
   },
   methods: {
@@ -68,11 +69,33 @@ export default {
             duration,
             progress: Math.min((duration / 60) * 100, 100), // Example progress calculation
           };
+
+          // Start live duration update
+          if (!this.durationInterval) {
+            this.startDurationUpdate(new Date(activeLog.start_time));
+          }
         } else {
           this.currentStatus = null;
+          this.clearDurationUpdate();
         }
       } catch (error) {
         console.error('Error fetching data:', error);
+      }
+    },
+    startDurationUpdate(startTime) {
+      this.clearDurationUpdate(); // Ensure no duplicate intervals
+      this.durationInterval = setInterval(() => {
+        const duration = Math.floor((Date.now() - startTime) / 60000);
+        if (this.currentStatus) {
+          this.currentStatus.duration = duration;
+          this.currentStatus.progress = Math.min((duration / 60) * 100, 100);
+        }
+      }, 1000); // Update every second
+    },
+    clearDurationUpdate() {
+      if (this.durationInterval) {
+        clearInterval(this.durationInterval);
+        this.durationInterval = null;
       }
     },
     async logNote() {
@@ -116,6 +139,9 @@ export default {
   },
   mounted() {
     this.fetchData();
+  },
+  beforeDestroy() {
+    this.clearDurationUpdate(); // Clear interval when component is destroyed
   },
 };
 </script>
