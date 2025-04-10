@@ -3,7 +3,7 @@
     <Navbar />
     <h1>Dashboard</h1>
     <div v-if="currentStatus" class="current-status">
-      <p>Currently helping <strong>{{ currentStatus.activity }}</strong> for <strong>{{ currentStatus.duration }}</strong> minutes</p>
+      <p>You're currently focused on <strong>{{ currentStatus.activity }}</strong> for <strong>{{ currentStatus.duration }}</strong> minutes</p>
       <div class="progress-bar">
         <div class="progress" :style="{ width: `${currentStatus.progress}%` }"></div>
       </div>
@@ -98,6 +98,8 @@ export default {
     async logNote() {
       try {
         if (!this.userStore.userToken) throw new Error('User not authenticated');
+        this.clearDurationUpdate();
+        this.currentStatus = null;
 
         await axios.post('/log/', {
           activity: this.currentActivity,
