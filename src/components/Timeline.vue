@@ -24,35 +24,24 @@
       </div>
     </div>
 
-    <div v-if="isEditModalOpen" class="modal">
-      <div class="modal-content">
-        <h3>Edit Log Entry</h3>
-        <form @submit.prevent="submitEdit">
-          <label for="activity">Activity:</label>
-          <input id="activity" v-model="editEntry.activity" type="text" required />
-
-          <label for="note">Note:</label>
-          <textarea id="note" v-model="editEntry.note"></textarea>
-
-          <label for="startTime">Start Time:</label>
-          <input id="startTime" v-model="editEntry.startTime" type="datetime-local" required />
-
-          <label for="endTime">End Time:</label>
-          <input id="endTime" v-model="editEntry.endTime" type="datetime-local" />
-
-          <button type="submit">Save</button>
-          <button type="button" @click="closeEditModal">Cancel</button>
-        </form>
-      </div>
-    </div>
+    <TimelineEditActivityModal
+      v-if="isEditModalOpen"
+      :entry="editEntry"
+      @close="closeEditModal"
+      @submit="submitEdit"
+    />
   </div>
 </template>
 
 <script>
 import axios from 'axios';
 import { toDatetimeLocal } from '../utils/dateUtils';
+import TimelineEditActivityModal from './TimelineEditActivityModal.vue';
 
 export default {
+  components: {
+    TimelineEditActivityModal,
+  },
   props: {
     entries: {
       type: Array,
@@ -109,31 +98,29 @@ export default {
       }
     },
     openEditModal(entry) {
-      console.log('Original entry:', entry);
       this.editEntry = {
         ...entry,
         startTime: toDatetimeLocal(entry.startTime),
         endTime: toDatetimeLocal(entry.endTime),
       };
-      console.log('Formatted entry for modal:', this.editEntry);
       this.isEditModalOpen = true;
     },
     closeEditModal() {
       this.isEditModalOpen = false;
     },
-    async submitEdit() {
+    async submitEdit(updatedEntry) {
       const toUTC = (localDatetime) => {
         if (!localDatetime) return null;
         return new Date(localDatetime).toISOString();
       };
 
       const updatedFields = {
-        ...this.editEntry,
-        startTime: toUTC(this.editEntry.startTime),
-        endTime: toUTC(this.editEntry.endTime),
+        ...updatedEntry,
+        startTime: toUTC(updatedEntry.startTime),
+        endTime: toUTC(updatedEntry.endTime),
       };
 
-      await this.editLog(this.editEntry.id, updatedFields);
+      await this.editLog(updatedEntry.id, updatedFields);
       this.closeEditModal();
     },
     toggleDay(day) {
