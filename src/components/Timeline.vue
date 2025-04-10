@@ -1,18 +1,26 @@
 <template>
   <div class="timeline-container">
     <h2 class="timeline-header">Timeline</h2>
-    <div v-for="entry in entries" :key="entry.id" class="timeline-entry">
-      <div class="timeline-details">
-        <p class="timeline-activity"><strong>Activity:</strong> {{ entry.activity }}</p>
-        <p class="timeline-time"><strong>Start Time:</strong> {{ entry.startTime.toLocaleString() }}</p>
-        <p v-if="entry.endTime" class="timeline-time"><strong>End Time:</strong> {{ entry.endTime.toLocaleString() }}</p>
-        <p v-else class="timeline-status"><strong>Status:</strong> Active</p>
-        <p v-if="entry.note" class="timeline-note"><strong>Note:</strong> {{ entry.note }}</p>
-        <button @click="deleteLog(entry.id)" class="delete-button">Delete</button>
-        <button @click="openEditModal(entry)" class="edit-button">Edit</button>
+    <div v-for="(logs, day) in groupedLogs" :key="day" class="day-group">
+      <div class="day-header" @click="toggleDay(day)">
+        <h3>{{ day }}</h3>
+        <span>{{ isDayExpanded(day) ? '-' : '+' }}</span>
       </div>
-      <div class="timeline-bar" :style="{ backgroundColor: entry.color, width: `${entry.duration}px` }">
-        {{ entry.activity }}
+      <div v-if="isDayExpanded(day)" class="day-logs">
+        <div v-for="entry in logs" :key="entry.id" class="timeline-entry">
+          <div class="timeline-details">
+            <p class="timeline-activity"><strong>Activity:</strong> {{ entry.activity }}</p>
+            <p class="timeline-time"><strong>Start Time:</strong> {{ entry.startTime.toLocaleString() }}</p>
+            <p v-if="entry.endTime" class="timeline-time"><strong>End Time:</strong> {{ entry.endTime.toLocaleString() }}</p>
+            <p v-else class="timeline-status"><strong>Status:</strong> Active</p>
+            <p v-if="entry.note" class="timeline-note"><strong>Note:</strong> {{ entry.note }}</p>
+            <button @click="deleteLog(entry.id)" class="delete-button">Delete</button>
+            <button @click="openEditModal(entry)" class="edit-button">Edit</button>
+          </div>
+          <div class="timeline-bar" :style="{ backgroundColor: entry.color, width: `${entry.duration}px` }">
+            {{ entry.activity }}
+          </div>
+        </div>
       </div>
     </div>
 
@@ -55,7 +63,19 @@ export default {
     return {
       isEditModalOpen: false,
       editEntry: {},
+      expandedDays: new Set(),
     };
+  },
+  computed: {
+    groupedLogs() {
+      const grouped = {};
+      this.entries.forEach((entry) => {
+        const day = new Date(entry.startTime).toLocaleDateString();
+        if (!grouped[day]) grouped[day] = [];
+        grouped[day].push(entry);
+      });
+      return grouped;
+    },
   },
   methods: {
     async deleteLog(logId) {
@@ -115,6 +135,16 @@ export default {
 
       await this.editLog(this.editEntry.id, updatedFields);
       this.closeEditModal();
+    },
+    toggleDay(day) {
+      if (this.expandedDays.has(day)) {
+        this.expandedDays.delete(day);
+      } else {
+        this.expandedDays.add(day);
+      }
+    },
+    isDayExpanded(day) {
+      return this.expandedDays.has(day);
     },
   },
 };
@@ -288,5 +318,31 @@ export default {
 
 .modal-content form button[type="button"]:hover {
   background-color: #5a6268;
+}
+
+.day-group {
+  margin-bottom: 20px;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.day-header h3 {
+  margin: 0;
+}
+
+.day-logs {
+  padding: 10px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
 </style>
